@@ -1,0 +1,2 @@
+# LC
+My leetcode notes
