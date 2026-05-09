@@ -81,6 +81,11 @@
         <aside>
         💡
         
+        这道题的pattern是：
+        
+        > 可达性问题 + 从边界出发 + 条件逆转 → 多源DFS/BFS染色
+        > 
+        
         DFS的结构，问自己3个问题：
         
         **Q1: DFS需要知道什么信息？**
@@ -123,4 +128,87 @@
         | `pac` set | O(M × N) 最坏全部cell都可达 |
         | `atl` set | O(M × N) 同上 |
         | call stack | O(M × N) 最坏DFS递归深度遍历所有cell |
+        </aside>
+        
+    - **2. Breadth First Search**
+        
+        <aside>
+        🗣️
+        
+        "Instead of checking each cell individually, I'll reverse the direction. 
+        
+        I'll do two multi-source BFS passes — one starting from all Pacific border cells, one from all Atlantic border cells — expanding to neighbors that are equal or higher in height. 
+        
+        Any cell reached by both passes is an answer.”
+        
+        </aside>
+        
+        ```python
+        class Solution:
+            def pacificAtlantic(self, heights: List[List[int]]) -> List[List[int]]:
+                ROWS, COLS = len(heights), len(heights[0])
+                directions = [[0, 1], [0, -1], [1, 0], [-1, 0]]
+        
+                pac_boarders = [(0, c) for c in range(COLS)] + \
+                               [(r, 0) for r in range(ROWS)]
+                atl_boarders = [(ROWS-1, c) for c in range(COLS)] + \
+                               [(r, COLS-1) for r in range(ROWS)]
+        
+                def bfs(boarders):
+                    visited = set(boarders)
+                    q = deque(boarders)
+                    while q:
+                        r, c = q.popleft()
+                        for dr, dc in directions:
+                            row, col = r + dr, c + dc
+                            if ((row, col) not in visited
+                                and 0 <= row < ROWS and 0 <= col < COLS
+                                and heights[row][col] >= heights[r][c]
+                            ):  
+                                visited.add((row, col))
+                                q.append((row, col))
+                    return visited
+        
+                pac = bfs(pac_boarders)
+                atl = bfs(atl_boarders)
+                
+                return [[r, c] for r in range(ROWS)
+                               for c in range(COLS)
+                               if (r, c) in pac and (r, c) in atl]
+        ```
+        
+        <aside>
+        💡
+        
+        从边界出发，往**等高或更高**的cell扩散。能被扩散到的cell，就是可达的cell。
+        
+        需要从 **多个起点** 往外扩散 → 多源BFS，天然适合。—— 把所有边界cell一次性塞进queue，然后开始扩散。不关心顺序。
+        
+        ---
+        
+        **BFS需要什么?**
+        
+        | 问题 | 答案 |
+        | --- | --- |
+        | 起点是什么？ | 所有Pacific边界cell / 所有Atlantic边界cell |
+        | 扩散条件是什么？ | 邻居的高度 ≥ 当前cell的高度 |
+        | 怎么避免重复？ | visited set，入queue时就标记 |
+        
+        ---
+        
+        **和DFS对比**
+        
+        |  | DFS | BFS |
+        | --- | --- | --- |
+        | 起点处理 | 逐个border cell调用 | 一次性全塞进queue |
+        | visited标记时机 | 进入cell时 | 入queue时 |
+        | 代码长度 | 更短 | 稍长 |
+        | 思路难度 | 相同 | 相同 |
+        </aside>
+        
+        <aside>
+        💡
+        
+        list comprehension: `[expression for x in iterable1 for y in iterable2 if condition]`
+        
         </aside>
