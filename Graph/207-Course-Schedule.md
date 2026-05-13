@@ -25,9 +25,11 @@
         
         DFS 的逻辑是：**"从课程 A 出发，沿着依赖链走，能不能回到 A？"**
         
-        `canFinish(A) 需要先 canFinish(B)
+        ```
+        canFinish(A) 需要先 canFinish(B)
         canFinish(B) 需要先 canFinish(C)
-        canFinish(C) 需要先 canFinish(A)  ← 回到了 A，成环！`
+        canFinish(C) 需要先 canFinish(A)  ← 回到了 A，成环！
+        ```
         
         这条"查询路径"天然就是 **A → B → C → A**，即：
         
@@ -46,8 +48,10 @@
         
         代码里用了一个巧妙的**双重标记**：
         
-        `visitSet          # = "当前路径上的节点"（进入时加，回溯时删）
-        preMap[crs] = []  # = "已确认无环"（处理完后清空 作为 memo）`
+        ```python
+        visitSet          # = "当前路径上的节点"（进入时加，回溯时删）
+        preMap[crs] = []  # = "已确认无环"（处理完后清空 作为 memo）
+        ```
         
         ---
         
@@ -142,9 +146,11 @@
         
         Kahn's 的问题是：**"我解锁了谁？"** → `prerequisite → course`
         
-        `DFS 视角（追依赖）:         Kahn's 视角（解锁）:
+        ```
+        DFS 视角（追依赖）:         Kahn's 视角（解锁）:
          A → B → C                  C → B → A
-        "A 依赖 B 依赖 C"           "学完 C，解锁 B，再解锁 A"`
+        "A 依赖 B 依赖 C"           "学完 C，解锁 B，再解锁 A"
+        ```
         
         为什么 Kahn's 需要反向？因为算法的核心操作是：
         
@@ -161,7 +167,8 @@
         
         这就是**入度（indegree）**：
         
-        `prerequisites = [[1,0],[2,0],[3,1],[3,2]]
+        ```python
+        prerequisites = [[1,0],[2,0],[3,1],[3,2]]
         
         含义：
           课1 需要 课0      课0 → 课1
@@ -172,7 +179,8 @@
           课0: 0  ← 没有任何前置，可以立刻开始！
           课1: 1
           课2: 1
-          课3: 2`
+          课3: 2
+        ```
         
         **indegree = 0 的课 = 当前可以上的课**
         
