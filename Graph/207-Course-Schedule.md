@@ -3,12 +3,13 @@
 - **207. Course Schedule**
     - **1. Cycle Detection (DFS)**
         
+        
         <aside>
         💡
         
         ### Step 1: 理解题意 → 转化为图问题
         
-        题目说：要完成课程 A，必须先完成课程 B。这天然就是一个**依赖关系**。
+        题：要完成课程 A，必须先完成课程 B。这天然就是一个**依赖关系**。
         
         问题变成：**能否完成所有课程？** = **依赖关系中有没有循环依赖（环）？**
         
@@ -57,6 +58,41 @@
         
         </aside>
         
+        <aside>
+        💡
+        
+        Each course is a node, and each prerequisite is a **directed edge**. 
+        
+        You can finish all courses **only if there is no cycle** in this directed graph.
+        
+        **A cycle means:** 
+        
+        - Course A needs B
+        - B needs C
+        - C needs A —— So you’re stuck forever.
+        
+        **We use DFS with cycle detection:** 
+        
+        - While doing DFS, keep track of courses in the **current recursion path**.
+        - If we visit a course already in the current path → **cycle found**.
+        - If a course has no prerequisites left, it’s safe.
+        </aside>
+        
+        <aside>
+        🗣️
+        
+        My idea is to treat this as cycle detection in a directed graph. 
+        
+        Each course depends on its prerequisites, so if there is a dependency cycle, we can’t finish all courses. 
+        
+        I’ll do DFS from each course, keeping track of nodes in the current recursion path. If I reach a node already in the current path, I found a cycle. 
+        
+        Once a course and all its prerequisites are verified to be acyclic, I’ll mark it as completed/safe so we don’t repeat work. 
+        
+        The time complexity is `O(V + E)`, where `V` is the number of courses and `E` is the number of prerequisite pairs. 
+        
+        </aside>
+        
         ```python
         class Solution:
             def canFinish(self, numCourses: int, prerequisites: List[List[int]]) -> bool:
@@ -97,27 +133,8 @@
                 # 3 -> 4     
         ```
         
-        <aside>
-        💡
-        
-        Each course is a node, and each prerequisite is a **directed edge**. 
-        
-        You can finish all courses **only if there is no cycle** in this directed graph.
-        
-        **A cycle means:** 
-        
-        - Course A needs B
-        - B needs C
-        - C needs A —— So you’re stuck forever.
-        
-        **We use DFS with cycle detection:** 
-        
-        - While doing DFS, keep track of courses in the **current recursion path**.
-        - If we visit a course already in the current path → **cycle found**.
-        - If a course has no prerequisites left, it’s safe.
-        </aside>
-        
     - **2. Topological Sort (Kahn's Algorithm)**
+        
         
         <aside>
         💡
@@ -169,7 +186,6 @@
         
         ```python
         prerequisites = [[1,0],[2,0],[3,1],[3,2]]
-        
         含义：
           课1 需要 课0      课0 → 课1
           课2 需要 课0      课0 → 课2
@@ -182,7 +198,50 @@
           课3: 2
         ```
         
-        **indegree = 0 的课 = 当前可以上的课**
+        **indegree = 0 的课 = 没有先修课、可以马上上的课**
+        
+        最后如果能 finish 所有课程，说明没有环；如果 finish 数量不够，说明有些课互相依赖，卡在 cycle 里。
+        
+        </aside>
+        
+        <aside>
+        💡
+        
+        If a course has no prerequisites, it can be taken immediately.
+        
+        Kahn's Algorithm repeatedly takes courses that have **zero prerequisites**.
+        
+        When we finish a course, we remove its dependency effect from other courses.
+        
+        - If all courses can be taken this way - **no cycle**, return `true`
+        - If some courses are never taken - **cycle exists**, return `false`
+        
+        **Algorithm**
+        
+        - Build a graph and compute `indegree` (number of prerequisites) for each course.
+        - Add all courses with `indegree = 0` into a queue.
+        - While the queue is not empty:
+            - Remove a course from the queue.
+            - finish += 1.
+            - Reduce the `indegree` of its dependent courses.
+            - If any dependent course reaches `indegree = 0`, add it to the queue.
+        - After processing:
+            - If finished courses == total courses - return `true`
+            - Else - return `false`
+        </aside>
+        
+        <aside>
+        🗣️
+        
+        My idea is to use topological sorting with Kahn’s algorithm. 
+        
+        I’ll build a graph where each prerequisite points to the courses that depend on it, and I’ll maintain an indegree array for how many prerequisites each course still has. 
+        
+        Courses with indegree `0` can be taken first, so I start BFS from them. 
+        
+        Each time I finish a course, I reduce the indegree of its dependent courses. If a dependent course reaches indegree `0`, it becomes available. 
+        
+        If I can process all courses, there is no cycle; otherwise, there must be a cycle blocking some courses.
         
         </aside>
         
@@ -213,28 +272,13 @@
                 return finish == numCourses
         ```
         
-        <aside>
-        💡
-        
-        If a course has no prerequisites, it can be taken immediately.
-        
-        Kahn's Algorithm repeatedly takes courses that have **zero prerequisites**.
-        
-        When we finish a course, we remove its dependency effect from other courses.
-        
-        - If all courses can be taken this way - **no cycle**, return `true`
-        - If some courses are never taken - **cycle exists**, return `false`
-        
-        **Algorithm**
-        
-        - Build a graph and compute `indegree` (number of prerequisites) for each course.
-        - Add all courses with `indegree = 0` into a queue.
-        - While the queue is not empty:
-            - Remove a course from the queue.
-            - finish += 1.
-            - Reduce the `indegree` of its dependent courses.
-            - If any dependent course reaches `indegree = 0`, add it to the queue.
-        - After processing:
-            - If finished courses == total courses - return `true`
-            - Else - return `false`
-        </aside>
+    
+    **两种解法核心对比：选择建议**：Kahn's 更直观、无递归栈溢出风险，面试中两种都要掌握，但 Kahn's 更容易在压力下写对。
+    
+    |  | DFS | Kahn's (BFS) |
+    | --- | --- | --- |
+    | **边方向** | course → prerequisite | prerequisite → course |
+    | **核心问题** | 我依赖谁？有没有绕回来？ | 我完成后能解锁谁？ |
+    | **环的发现** | 路径上重复遇到同一节点 | 最终 count < numCourses |
+    | **关键数据结构** | visitSet（动态路径标记） | indegree 数组 + 队列 |
+    | **思维方式** | 追溯依赖链（递归） | 模拟执行过程（迭代） |
